@@ -886,7 +886,7 @@ table.data-table {
     <div class="modal-field">
       <label>NocoDB Base URL</label>
       <input type="text" id="cfg_url" placeholder="https://your-nocodb-instance.com">
-      <div class="modal-hint">e.g. https://app.nocodb.com or your self-hosted URL</div>
+      <div class="modal-hint">e.g. https://app.nocodb.com (do not include a trailing slash)</div>
     </div>
     <div class="modal-field">
       <label>API Token</label>
@@ -896,7 +896,7 @@ table.data-table {
     <div class="modal-field">
       <label>Table ID</label>
       <input type="text" id="cfg_table" placeholder="md_xxxxxxxxxxxxxxxx">
-      <div class="modal-hint">From the URL when your GAD_Survey_Responses_2025 table is open</div>
+      <div class="modal-hint">From your table URL — the 3rd path segment, e.g. <code>meete0goepeh2xw</code></div>
     </div>
 
     <div class="modal-actions">
@@ -1401,14 +1401,14 @@ table.data-table {
    Fill these in or use the ⚙️ button in the sidebar
 ═══════════════════════════════════════════ */
 let NOCODB_BASE_URL  = 'https://app.nocodb.com';
-let NOCODB_API_TOKEN = 'nc_pat_P3qE2EWWaDZ2c7Xza2Vay8l9MaQsRWzteEydWJkZ';
+let NOCODB_API_TOKEN = 'nc_pat_Sd5jUq5D2ZyrQwftkL6MWuXCprYyHyuNeJEYwjOu';
 let NOCODB_TABLE_ID  = 'meete0goepeh2xw';
 /* ═══════════════════════════════════════════
    ▸ LOGIN CREDENTIALS
    Change these before deploying to production
 ═══════════════════════════════════════════ */
 const USERS = {
-  'gadmin':    'mwssro-0897GfP$',
+  'gadmin':    'mwss2025',
   'gfps_ro':   'gadteam2025',
 };
 /* ══════════════════════════════════════════ */
@@ -1508,7 +1508,7 @@ function saveConfig() {
 // DATA LOADING
 // ═══════════════════════════════════════════
 async function loadData() {
-  if (NOCODB_API_TOKEN === 'YOUR_API_TOKEN_HERE') {
+  if (!NOCODB_API_TOKEN || NOCODB_API_TOKEN === 'YOUR_API_TOKEN_HERE') {
     showToast('⚙️ Configure NocoDB credentials to load live data.', 'error');
     renderWithSampleData();
     return;
@@ -1518,12 +1518,12 @@ async function loadData() {
     let page = 1, limit = 100, fetched = [];
     while (true) {
       const res = await fetch(
-        `${NOCODB_BASE_URL}/api/v1/db/data/noco/${NOCODB_TABLE_ID}/GAD_Survey_Responses_2025?limit=${limit}&offset=${(page-1)*limit}`,
-        { headers: { 'xc-token': NOCODB_API_TOKEN } }
+        `${NOCODB_BASE_URL}/api/v2/tables/${NOCODB_TABLE_ID}/records?limit=${limit}&offset=${(page-1)*limit}`,
+        { headers: { 'xc-auth': NOCODB_API_TOKEN, 'xc-token': NOCODB_API_TOKEN } }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      const rows = json.list || json.data || [];
+      const rows = json.list || json.records || json.data || [];
       fetched = [...fetched, ...rows];
       if (rows.length < limit) break;
       page++;
