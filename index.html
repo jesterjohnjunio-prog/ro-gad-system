@@ -913,9 +913,13 @@ table.data-table {
 
   <!-- LEFT BRAND PANEL -->
   <div class="login-brand">
-    <div class="brand-eyebrow">MWSS Regulatory Office</div>
+    <div class="brand-eyebrow" style="background:none;border:none;padding:0;letter-spacing:0;">
+      <img src="https://i.ibb.co/cKkpkNBj/Horizontal-White.png" alt="MWSS Regulatory Office" style="height:40px;width:auto;max-width:260px;object-fit:contain;display:block;">
+    </div>
     <div class="brand-logo-wrap">
-      <div class="brand-emblem">🌸</div>
+      <div class="brand-emblem" style="background:transparent;box-shadow:none;width:58px;height:58px;border-radius:0;padding:0;">
+        <img src="https://i.ibb.co/YF212RS9/GAD-Logo.png" alt="GAD Logo" style="width:58px;height:58px;object-fit:contain;display:block;">
+      </div>
       <div class="brand-name">
         <strong>GAD Information System</strong>
         <span>Gender and Development · v1.0</span>
@@ -936,7 +940,7 @@ table.data-table {
   <div class="login-form-wrap">
     <div class="login-box">
       <div class="login-greeting">
-        <h2>Welcome back</h2>
+        <h2>Welcome</h2>
         <p>Sign in to access the GAD Information System</p>
       </div>
 
@@ -953,13 +957,8 @@ table.data-table {
 
       <button class="btn-login" onclick="handleLogin()">Sign In</button>
 
-      <div class="login-hint">
-        <strong>Default credentials:</strong> username <code>gadmin</code> · password <code>mwss2025</code><br>
-        <span style="color:var(--ink-lt);font-size:0.72rem;">Change these in the source file before deploying.</span>
-      </div>
-
       <div class="login-footer">
-        Protected under RA 10173 – Data Privacy Act &nbsp;·&nbsp; MWSS RO GFPS © 2025
+        Powered by the MWSS RO Management Information System
       </div>
     </div>
   </div>
@@ -976,7 +975,7 @@ table.data-table {
     <div class="topbar-left">
       <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
       <div class="topbar-brand">
-        <div class="topbar-emblem">🌸</div>
+        <div class="topbar-emblem" style="background:transparent;box-shadow:none;padding:0;border-radius:0;width:36px;height:36px;"><img src="https://i.ibb.co/YF212RS9/GAD-Logo.png" alt="GAD Logo" style="width:36px;height:36px;object-fit:contain;display:block;"></div>
         <div class="topbar-title">
           GAD Information System
           <small>MWSS Regulatory Office</small>
