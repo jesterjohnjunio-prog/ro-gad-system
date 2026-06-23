@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAD Information System — MWSS RO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --plum:       #3D0C52;
+  --plum-dk:    #280838;
+  --plum-lt:    #6A2C8A;
+  --rose:       #C2185B;
+  --rose-lt:    #F8BBD0;
+  --rose-dk:    #880E4F;
+  --gold:       #F9A825;
+  --gold-lt:    #FFF8E1;
+  --lavender:   #F3EEF8;
+  --lavender-md:#E1D5EE;
+  --white:      #FFFFFF;
+  --ink:        #1A1020;
+  --ink-md:     #4A3B56;
+  --ink-lt:     #8B7D97;
+  --border:     #E2D6EE;
+  --success:    #2E7D32;
+  --warning:    #E65100;
+  --info:       #0277BD;
+
+  --sidebar-w:  260px;
+  --topbar-h:   64px;
+  --radius:     12px;
+  --radius-sm:  7px;
+  --shadow:     0 2px 16px rgba(61,12,82,0.10);
+  --shadow-md:  0 4px 28px rgba(61,12,82,0.16);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Inter', sans-serif; color: var(--ink); background: var(--lavender); }
+button { cursor: pointer; font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ═══════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════ */
+.screen { display: none; width: 100%; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════════ */
+#loginScreen {
+  flex-direction: row;
+}
+
+/* Left branding panel */
+.login-brand {
+  width: 46%;
+  background: linear-gradient(160deg, var(--plum-dk) 0%, var(--plum) 45%, var(--plum-lt) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.login-brand::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 80% 10%, rgba(249,168,37,0.18) 0%, transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(194,24,91,0.22) 0%, transparent 50%);
+  pointer-events: none;
+}
+.login-brand::after {
+  content: '';
+  position: absolute;
+  right: -80px; top: 50%;
+  transform: translateY(-50%);
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  border: 60px solid rgba(255,255,255,0.04);
+}
+.brand-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.25rem;
+}
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.brand-emblem {
+  width: 58px; height: 58px;
+  background: linear-gradient(135deg, var(--rose), var(--gold));
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(194,24,91,0.4);
+}
+.brand-name {
+  color: var(--white);
+}
+.brand-name strong {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+.brand-name span {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  font-weight: 400;
+}
+.brand-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+  color: var(--white);
+  line-height: 1.18;
+  margin-bottom: 1.25rem;
+}
+.brand-headline em {
+  font-style: italic;
+  color: var(--gold);
+}
+.brand-desc {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+  max-width: 340px;
+  margin-bottom: 2.5rem;
+}
+.brand-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.brand-module-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.75);
+}
+.brand-module-item .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+.brand-module-item.coming .dot { background: rgba(255,255,255,0.3); }
+.brand-module-item.coming { opacity: 0.5; font-style: italic; }
+
+/* Right login form */
+.login-form-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 2rem;
+  background: var(--white);
+}
+.login-box {
+  width: 100%;
+  max-width: 400px;
+}
+.login-greeting {
+  margin-bottom: 2rem;
+}
+.login-greeting h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  color: var(--plum);
+  margin-bottom: 0.35rem;
+}
+.login-greeting p {
+  font-size: 0.88rem;
+  color: var(--ink-lt);
+}
+.login-field {
+  margin-bottom: 1.1rem;
+}
+.login-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-md);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.login-field input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--lavender);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.login-field input:focus {
+  border-color: var(--plum-lt);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(106,44,138,0.12);
+}
+.login-error {
+  background: #FFF0F4;
+  border: 1px solid var(--rose-lt);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.83rem;
+  color: var(--rose-dk);
+  margin-bottom: 1rem;
+  display: none;
+}
+.login-error.show { display: block; }
+.btn-login {
+  width: 100%;
+  background: linear-gradient(135deg, var(--plum), var(--plum-lt));
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 18px rgba(61,12,82,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-top: 0.5rem;
+}
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(61,12,82,0.45);
+}
+.login-footer {
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--ink-lt);
+  text-align: center;
+}
+.login-hint {
+  margin-top: 1.25rem;
+  background: var(--lavender);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--ink-md);
+}
+.login-hint strong { color: var(--plum); }
+
+/* ═══════════════════════════════════════════
+   DASHBOARD SCREEN
+═══════════════════════════════════════════ */
+#dashboardScreen {
+  flex-direction: column;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem 0 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  box-shadow: 0 1px 8px rgba(61,12,82,0.07);
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.sidebar-toggle {
+  width: var(--topbar-h);
+  height: var(--topbar-h);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  background: none; border: none;
+  color: var(--ink-md);
+  transition: background 0.15s;
+}
+.sidebar-toggle:hover { background: var(--lavender); }
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-left: 0.5rem;
+}
+.topbar-emblem {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--rose), var(--gold));
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+.topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--plum);
+  line-height: 1.1;
+}
+.topbar-title small {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--ink-lt);
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--lavender);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--ink-md);
+  font-weight: 500;
+}
+.topbar-badge .dot-live {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.topbar-refresh {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: none;
+  color: var(--ink-md);
+  font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.3s;
+}
+.topbar-refresh:hover { background: var(--lavender); }
+.topbar-refresh.spinning { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none; border: none;
+  color: var(--ink-md);
+  font-size: 0.83rem;
+  font-weight: 500;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+.topbar-user:hover { background: var(--lavender); }
+.topbar-user .avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--plum), var(--rose));
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-logout {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--ink-md);
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-logout:hover { border-color: var(--rose); color: var(--rose); }
+
+/* ── LAYOUT SHELL ── */
+.dash-shell {
+  display: flex;
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: var(--topbar-h);
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  z-index: 150;
+}
+.sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+.sidebar-section {
+  padding: 1.25rem 1rem 0.5rem;
+}
+.sidebar-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-lt);
+  padding: 0 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ink-md);
+  background: none; border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+.nav-item:hover { background: var(--lavender); color: var(--plum); }
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(61,12,82,0.1), rgba(61,12,82,0.05));
+  color: var(--plum);
+  font-weight: 600;
+  border-left: 3px solid var(--plum);
+}
+.nav-item .nav-icon { font-size: 1rem; flex-shrink: 0; }
+.nav-item .nav-badge {
+  margin-left: auto;
+  background: var(--rose);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.nav-item.coming-soon { opacity: 0.45; cursor: not-allowed; }
+.nav-item.coming-soon:hover { background: none; color: var(--ink-md); }
+.coming-tag {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--ink-lt);
+  background: var(--lavender-md);
+  padding: 1px 6px;
+  border-radius: 8px;
+  letter-spacing: 0.06em;
+}
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.75rem 1rem;
+}
+.sidebar-footer {
+  padding: 1rem;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+.sidebar-config-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-lt);
+  background: none; border: none;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+.sidebar-config-btn:hover { background: var(--lavender); color: var(--ink-md); }
+.sidebar-version {
+  font-size: 0.68rem;
+  color: var(--ink-lt);
+  padding: 0.3rem 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  padding: 2rem;
+  transition: margin-left 0.25s cubic-bezier(.4,0,.2,1);
+  min-width: 0;
+}
+.main-content.expanded { margin-left: 0; }
+
+/* ── MODULE PAGES ── */
+.module-page { display: none; }
+.module-page.active { display: block; }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  margin-bottom: 1.75rem;
+}
+.page-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin-bottom: 0.3rem;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  color: var(--plum);
+  margin-bottom: 0.3rem;
+}
+.page-subtitle {
+  font-size: 0.86rem;
+  color: var(--ink-lt);
+}
+
+/* ── STATS RIBBON ── */
+.stats-ribbon {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  position: relative;
+  overflow: hidden;
+  border-top: 3px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card.rose  { border-top-color: var(--rose); }
+.stat-card.plum  { border-top-color: var(--plum); }
+.stat-card.gold  { border-top-color: var(--gold); }
+.stat-card.teal  { border-top-color: #00695C; }
+.stat-card.info  { border-top-color: var(--info); }
+.stat-card::after {
+  content: attr(data-icon);
+  position: absolute;
+  right: 1rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 2.2rem;
+  opacity: 0.08;
+}
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-lt);
+}
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--plum);
+  line-height: 1;
+}
+.stat-delta {
+  font-size: 0.75rem;
+  color: var(--ink-lt);
+}
+.stat-delta.up { color: var(--success); }
+
+/* ── CHART GRID ── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.chart-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.4rem;
+  box-shadow: var(--shadow);
+}
+.chart-card.col-4  { grid-column: span 4; }
+.chart-card.col-5  { grid-column: span 5; }
+.chart-card.col-6  { grid-column: span 6; }
+.chart-card.col-7  { grid-column: span 7; }
+.chart-card.col-8  { grid-column: span 8; }
+.chart-card.col-12 { grid-column: span 12; }
+.chart-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--plum);
+  margin-bottom: 0.25rem;
+}
+.chart-subtitle {
+  font-size: 0.75rem;
+  color: var(--ink-lt);
+  margin-bottom: 1.1rem;
+}
+.chart-wrap { position: relative; }
+.chart-wrap canvas { max-height: 260px; }
+
+/* ── HORIZONTAL BAR (custom) ── */
+.hbar-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.hbar-item { display: flex; flex-direction: column; gap: 0.2rem; }
+.hbar-meta { display: flex; justify-content: space-between; font-size: 0.78rem; }
+.hbar-label { color: var(--ink-md); font-weight: 500; }
+.hbar-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--plum); }
+.hbar-track {
+  height: 8px;
+  background: var(--lavender-md);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.hbar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--plum), var(--plum-lt));
+  transition: width 1s cubic-bezier(.4,0,.2,1);
+  width: 0;
+}
+.hbar-fill.rose  { background: linear-gradient(90deg, var(--rose-dk), var(--rose)); }
+.hbar-fill.gold  { background: linear-gradient(90deg, #E65100, var(--gold)); }
+.hbar-fill.teal  { background: linear-gradient(90deg, #004D40, #00695C); }
+
+/* ── YES/NO METER ── */
+.yn-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+.yn-item { display: flex; flex-direction: column; gap: 0.25rem; }
+.yn-label { font-size: 0.78rem; color: var(--ink-md); font-weight: 500; }
+.yn-bar-wrap { display: flex; height: 22px; border-radius: 5px; overflow: hidden; font-size: 0.68rem; font-weight: 600; }
+.yn-yes { background: linear-gradient(90deg, var(--plum), var(--plum-lt)); color: white; display: flex; align-items: center; justify-content: center; min-width: 24px; }
+.yn-no  { background: linear-gradient(90deg, var(--rose-dk), var(--rose)); color: white; display: flex; align-items: center; justify-content: center; min-width: 24px; }
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(4px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+  gap: 1rem;
+}
+.loading-overlay.hidden { display: none; }
+.loader-ring {
+  width: 52px; height: 52px;
+  border: 4px solid var(--lavender-md);
+  border-top-color: var(--plum);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.loader-text { font-size: 0.85rem; color: var(--ink-md); font-weight: 500; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  background: var(--plum-dk);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.error { background: var(--rose-dk); }
+.toast.success { background: var(--success); }
+
+/* ── CONFIG MODAL ── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(40,8,56,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 500;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal-box {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 2rem;
+  width: 100%; max-width: 500px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--plum);
+  margin-bottom: 0.3rem;
+}
+.modal-sub { font-size: 0.8rem; color: var(--ink-lt); margin-bottom: 1.5rem; }
+.modal-field { margin-bottom: 1rem; }
+.modal-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-md);
+  margin-bottom: 0.35rem;
+}
+.modal-field input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: var(--lavender);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-field input:focus { border-color: var(--plum-lt); background: white; }
+.modal-hint { font-size: 0.72rem; color: var(--ink-lt); margin-top: 0.3rem; }
+.modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+.btn-modal-cancel {
+  padding: 0.55rem 1.2rem;
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  background: none;
+  font-size: 0.85rem;
+  color: var(--ink-md);
+}
+.btn-modal-cancel:hover { border-color: var(--ink-md); }
+.btn-modal-save {
+  padding: 0.55rem 1.4rem;
+  background: linear-gradient(135deg, var(--plum), var(--plum-lt));
+  border: none;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 3px 12px rgba(61,12,82,0.3);
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-lt);
+}
+.empty-state .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+.empty-state h3 { font-size: 1rem; color: var(--ink-md); margin-bottom: 0.4rem; }
+.empty-state p { font-size: 0.83rem; }
+
+/* ── RESPONDENTS TABLE ── */
+.table-wrap { overflow-x: auto; }
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.data-table th {
+  background: var(--lavender);
+  color: var(--plum);
+  font-weight: 600;
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-md);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: var(--lavender); }
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.pill-male   { background: #E3F2FD; color: #0277BD; }
+.pill-female { background: var(--rose-lt); color: var(--rose-dk); }
+.pill-other  { background: var(--gold-lt); color: #E65100; }
+.pill-yes    { background: #E8F5E9; color: var(--success); }
+.pill-no     { background: #FFEBEE; color: #C62828; }
+
+/* ── SECTION TABS ── */
+.section-tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+.tab-btn {
+  padding: 0.55rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--ink-lt);
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--plum); }
+.tab-btn.active { color: var(--plum); border-bottom-color: var(--plum); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .login-brand { display: none; }
+  .login-form-wrap { background: var(--lavender); }
+  .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .chart-card.col-4, .chart-card.col-5, .chart-card.col-6,
+  .chart-card.col-7, .chart-card.col-8 { grid-column: span 12; }
+}
+@media (max-width: 600px) {
+  .main-content { padding: 1rem; }
+  .stats-ribbon { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOADING OVERLAY
+════════════════════════════════════════════ -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text" id="loadingText">Loading data…</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TOAST
+════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════
+     CONFIG MODAL
+════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="configModal">
+  <div class="modal-box">
+    <div class="modal-title">⚙️ NocoDB Connection</div>
+    <div class="modal-sub">Configure your NocoDB instance to load live survey data.</div>
+
+    <div class="modal-field">
+      <label>NocoDB Base URL</label>
+      <input type="text" id="cfg_url" placeholder="https://your-nocodb-instance.com">
+      <div class="modal-hint">e.g. https://app.nocodb.com or your self-hosted URL</div>
+    </div>
+    <div class="modal-field">
+      <label>API Token</label>
+      <input type="text" id="cfg_token" placeholder="YOUR_API_TOKEN_HERE">
+      <div class="modal-hint">Team &amp; Settings → API Tokens → Copy token</div>
+    </div>
+    <div class="modal-field">
+      <label>Table ID</label>
+      <input type="text" id="cfg_table" placeholder="md_xxxxxxxxxxxxxxxx">
+      <div class="modal-hint">From the URL when your GAD_Survey_Responses_2025 table is open</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeConfig()">Cancel</button>
+      <button class="btn-modal-save" onclick="saveConfig()">Save &amp; Reload Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1: LOGIN
+════════════════════════════════════════════ -->
+<div class="screen active" id="loginScreen">
+
+  <!-- LEFT BRAND PANEL -->
+  <div class="login-brand">
+    <div class="brand-eyebrow">MWSS Regulatory Office</div>
+    <div class="brand-logo-wrap">
+      <div class="brand-emblem">🌸</div>
+      <div class="brand-name">
+        <strong>GAD Information System</strong>
+        <span>Gender and Development · v1.0</span>
+      </div>
+    </div>
+    <h1 class="brand-headline">Data that drives<br><em>gender equality</em><br>at MWSS RO</h1>
+    <p class="brand-desc">A centralized platform for visualizing, analyzing, and acting on gender-disaggregated data across all GAD programs and activities.</p>
+    <div class="brand-modules">
+      <div class="brand-module-item"><span class="dot"></span> Survey Dashboard — Live respondent analytics</div>
+      <div class="brand-module-item"><span class="dot"></span> GAD Calendar — Programs &amp; activities tracker</div>
+      <div class="brand-module-item coming"><span class="dot"></span> VAW Monitoring — Coming soon</div>
+      <div class="brand-module-item coming"><span class="dot"></span> GAD Budget Tracker — Coming soon</div>
+      <div class="brand-module-item coming"><span class="dot"></span> Training Registry — Coming soon</div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="login-form-wrap">
+    <div class="login-box">
+      <div class="login-greeting">
+        <h2>Welcome back</h2>
+        <p>Sign in to access the GAD Information System</p>
+      </div>
+
+      <div class="login-error" id="loginError">Incorrect username or password. Please try again.</div>
+
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username">
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
+      </div>
+
+      <button class="btn-login" onclick="handleLogin()">Sign In</button>
+
+      <div class="login-hint">
+        <strong>Default credentials:</strong> username <code>gadmin</code> · password <code>mwss2025</code><br>
+        <span style="color:var(--ink-lt);font-size:0.72rem;">Change these in the source file before deploying.</span>
+      </div>
+
+      <div class="login-footer">
+        Protected under RA 10173 – Data Privacy Act &nbsp;·&nbsp; MWSS RO GFPS © 2025
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2: DASHBOARD
+════════════════════════════════════════════ -->
+<div class="screen" id="dashboardScreen">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      <div class="topbar-brand">
+        <div class="topbar-emblem">🌸</div>
+        <div class="topbar-title">
+          GAD Information System
+          <small>MWSS Regulatory Office</small>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge"><span class="dot-live"></span> Live Data</div>
+      <button class="topbar-refresh" id="refreshBtn" onclick="refreshData()" title="Refresh data">↻</button>
+      <div class="topbar-user">
+        <div class="avatar" id="userAvatar">G</div>
+        <span id="userLabel">GAD Admin</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- SHELL -->
+  <div class="dash-shell">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Analytics</div>
+        <button class="nav-item active" onclick="showModule('overview')" data-module="overview">
+          <span class="nav-icon">📊</span> Overview
+          <span class="nav-badge" id="navBadge">—</span>
+        </button>
+        <button class="nav-item" onclick="showModule('demographics')" data-module="demographics">
+          <span class="nav-icon">👥</span> Demographics
+        </button>
+        <button class="nav-item" onclick="showModule('economic')" data-module="economic">
+          <span class="nav-icon">💼</span> Economic Roles
+        </button>
+        <button class="nav-item" onclick="showModule('health')" data-module="health">
+          <span class="nav-icon">🏥</span> Health &amp; Well-being
+        </button>
+        <button class="nav-item" onclick="showModule('laws')" data-module="laws">
+          <span class="nav-icon">⚖️</span> GAD Laws Awareness
+        </button>
+        <button class="nav-item" onclick="showModule('security')" data-module="security">
+          <span class="nav-icon">🛡️</span> Security &amp; Safety
+        </button>
+        <button class="nav-item" onclick="showModule('governance')" data-module="governance">
+          <span class="nav-icon">🏛️</span> Governance &amp; SOGIESC
+        </button>
+        <button class="nav-item" onclick="showModule('environment')" data-module="environment">
+          <span class="nav-icon">🌿</span> Environment
+        </button>
+        <button class="nav-item" onclick="showModule('respondents')" data-module="respondents">
+          <span class="nav-icon">📋</span> Respondents
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Modules</div>
+        <button class="nav-item coming-soon">
+          <span class="nav-icon">📅</span> GAD Calendar
+          <span class="coming-tag">Soon</span>
+        </button>
+        <button class="nav-item coming-soon">
+          <span class="nav-icon">🚨</span> VAW Monitoring
+          <span class="coming-tag">Soon</span>
+        </button>
+        <button class="nav-item coming-soon">
+          <span class="nav-icon">💰</span> Budget Tracker
+          <span class="coming-tag">Soon</span>
+        </button>
+        <button class="nav-item coming-soon">
+          <span class="nav-icon">🎓</span> Training Registry
+          <span class="coming-tag">Soon</span>
+        </button>
+        <button class="nav-item coming-soon">
+          <span class="nav-icon">📑</span> Reports Generator
+          <span class="coming-tag">Soon</span>
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-config-btn" onclick="openConfig()">
+          ⚙️ NocoDB Connection
+        </button>
+        <div class="sidebar-version">GAD-IS v1.0.0 · 2025</div>
+      </div>
+
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ══ MODULE: OVERVIEW ══ -->
+      <div class="module-page active" id="mod-overview">
+        <div class="page-header">
+          <div class="page-eyebrow">Survey Dashboard</div>
+          <div class="page-title">GAD Survey Overview</div>
+          <div class="page-subtitle" id="overviewSubtitle">Loading data from NocoDB…</div>
+        </div>
+
+        <!-- Stats Ribbon -->
+        <div class="stats-ribbon">
+          <div class="stat-card rose" data-icon="👥">
+            <div class="stat-label">Total Respondents</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-delta" id="stat-total-sub">from NocoDB</div>
+          </div>
+          <div class="stat-card plum" data-icon="♀">
+            <div class="stat-label">Female Respondents</div>
+            <div class="stat-value" id="stat-female">—</div>
+            <div class="stat-delta" id="stat-female-pct"></div>
+          </div>
+          <div class="stat-card gold" data-icon="♂">
+            <div class="stat-label">Male Respondents</div>
+            <div class="stat-value" id="stat-male">—</div>
+            <div class="stat-delta" id="stat-male-pct"></div>
+          </div>
+          <div class="stat-card teal" data-icon="👤">
+            <div class="stat-label">Solo Parents</div>
+            <div class="stat-value" id="stat-solo">—</div>
+            <div class="stat-delta" id="stat-solo-pct"></div>
+          </div>
+          <div class="stat-card info" data-icon="♿">
+            <div class="stat-label">PWD Respondents</div>
+            <div class="stat-value" id="stat-pwd">—</div>
+            <div class="stat-delta" id="stat-pwd-pct"></div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="chart-grid">
+          <div class="chart-card col-4">
+            <div class="chart-title">Sex Distribution</div>
+            <div class="chart-subtitle">All respondents by sex assigned at birth</div>
+            <div class="chart-wrap"><canvas id="chart-sex"></canvas></div>
+          </div>
+          <div class="chart-card col-4">
+            <div class="chart-title">Civil Status</div>
+            <div class="chart-subtitle">Relationship / marital status</div>
+            <div class="chart-wrap"><canvas id="chart-civil"></canvas></div>
+          </div>
+          <div class="chart-card col-4">
+            <div class="chart-title">Income Bracket</div>
+            <div class="chart-subtitle">Total gross annual family income</div>
+            <div class="chart-wrap"><canvas id="chart-income"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="chart-grid">
+          <div class="chart-card col-6">
+            <div class="chart-title">Age Distribution</div>
+            <div class="chart-subtitle">Respondents grouped by age band</div>
+            <div class="chart-wrap"><canvas id="chart-age"></canvas></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Top Positions</div>
+            <div class="chart-subtitle">Most common positions among respondents</div>
+            <div class="chart-wrap" id="chart-positions-wrap">
+              <div class="hbar-list" id="chart-positions"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: DEMOGRAPHICS ══ -->
+      <div class="module-page" id="mod-demographics">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Demographics</div>
+          <div class="page-title">Respondent Demographics</div>
+          <div class="page-subtitle">Detailed breakdown of personal profiles and identity markers</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-6">
+            <div class="chart-title">Religion Distribution</div>
+            <div class="chart-subtitle">Religious affiliation of respondents</div>
+            <div class="chart-wrap"><canvas id="chart-religion"></canvas></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">LGBTQIA+ Identity</div>
+            <div class="chart-subtitle">Self-identification within the LGBTQIA+ community</div>
+            <div class="chart-wrap"><canvas id="chart-lgbtqia"></canvas></div>
+          </div>
+          <div class="chart-card col-4">
+            <div class="chart-title">Solo Parents</div>
+            <div class="chart-subtitle">With and without Solo Parent ID</div>
+            <div class="chart-wrap"><canvas id="chart-soloparent"></canvas></div>
+          </div>
+          <div class="chart-card col-4">
+            <div class="chart-title">PWD Status</div>
+            <div class="chart-subtitle">Persons with disability among respondents</div>
+            <div class="chart-wrap"><canvas id="chart-pwd"></canvas></div>
+          </div>
+          <div class="chart-card col-4">
+            <div class="chart-title">Indigenous Group</div>
+            <div class="chart-subtitle">Part of an indigenous / cultural group</div>
+            <div class="chart-wrap"><canvas id="chart-indigenous"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: ECONOMIC ROLES ══ -->
+      <div class="module-page" id="mod-economic">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Economic Empowerment</div>
+          <div class="page-title">Gender Roles — Economic Empowerment</div>
+          <div class="page-subtitle">Breadwinner status, financial access, child-rearing and household responsibilities</div>
+        </div>
+        <div class="stats-ribbon">
+          <div class="stat-card rose" data-icon="💼"><div class="stat-label">Breadwinners</div><div class="stat-value" id="eco-breadwinner">—</div><div class="stat-delta" id="eco-bw-pct"></div></div>
+          <div class="stat-card plum" data-icon="💳"><div class="stat-label">Financial Access</div><div class="stat-value" id="eco-finance">—</div><div class="stat-delta" id="eco-fin-pct"></div></div>
+          <div class="stat-card gold" data-icon="🤝"><div class="stat-label">Partner Shares Childcare</div><div class="stat-value" id="eco-partner">—</div><div class="stat-delta" id="eco-part-pct"></div></div>
+          <div class="stat-card teal" data-icon="🏠"><div class="stat-label">Have Household Help</div><div class="stat-value" id="eco-help">—</div><div class="stat-delta" id="eco-help-pct"></div></div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-6">
+            <div class="chart-title">Key Economic Indicators</div>
+            <div class="chart-subtitle">Yes/No breakdown of major economic role questions</div>
+            <div class="yn-grid" id="yn-economic"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Income Sources</div>
+            <div class="chart-subtitle">Additional income sources among breadwinners</div>
+            <div class="hbar-list" id="chart-income-sources"></div>
+          </div>
+          <div class="chart-card col-12">
+            <div class="chart-title">Dependent Type Distribution</div>
+            <div class="chart-subtitle">Who respondents are financially responsible for</div>
+            <div class="chart-wrap"><canvas id="chart-dependents" style="max-height:200px;"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: HEALTH ══ -->
+      <div class="module-page" id="mod-health">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Health &amp; Well-being</div>
+          <div class="page-title">Health &amp; Well-being</div>
+          <div class="page-subtitle">Health conditions, medical access, rest, recreation, and empowerment</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-7">
+            <div class="chart-title">Existing Health Issues</div>
+            <div class="chart-subtitle">Top reported health conditions among respondents</div>
+            <div class="hbar-list" id="chart-health-issues"></div>
+          </div>
+          <div class="chart-card col-5">
+            <div class="chart-title">Health Access Indicators</div>
+            <div class="chart-subtitle">Medical check-up, dental, and healthcare provider</div>
+            <div class="yn-grid" id="yn-health"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Well-being Indicators</div>
+            <div class="chart-subtitle">Rest, stress management, recreation, and growth</div>
+            <div class="yn-grid" id="yn-wellbeing"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Payment Method for Medical Expenses</div>
+            <div class="chart-subtitle">How respondents cover hospital/medical costs</div>
+            <div class="chart-wrap"><canvas id="chart-medical-pay"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: LAWS ══ -->
+      <div class="module-page" id="mod-laws">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · GAD Knowledge</div>
+          <div class="page-title">GAD Laws Awareness &amp; Implementation</div>
+          <div class="page-subtitle">Knowledge of gender-related laws and their perceived implementation at MWSS RO</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-12">
+            <div class="chart-title">Law Awareness vs. Perceived Implementation</div>
+            <div class="chart-subtitle">% of respondents aware of each law (blue) vs. those who believe it is implemented at MWSS RO (rose)</div>
+            <div class="chart-wrap"><canvas id="chart-laws" style="max-height:320px;"></canvas></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">GFPS Awareness</div>
+            <div class="chart-subtitle">Awareness of the GAD Focal Point System</div>
+            <div class="yn-grid" id="yn-gfps"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Top GAD Trainings Attended</div>
+            <div class="chart-subtitle">Most common GAD trainings among respondents</div>
+            <div class="hbar-list" id="chart-trainings"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: SECURITY ══ -->
+      <div class="module-page" id="mod-security">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Security, Justice &amp; Protection</div>
+          <div class="page-title">Security, Safety &amp; Experiences of Harm</div>
+          <div class="page-subtitle">Reported experiences of harassment, violence, and abuse among respondents</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-12">
+            <div class="chart-title">Reported Experiences of Harm/Harassment</div>
+            <div class="chart-subtitle">% of respondents who reported "Yes" to each experience type</div>
+            <div class="hbar-list" id="chart-experiences"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Response &amp; Support Readiness</div>
+            <div class="chart-subtitle">Willingness to seek help, awareness of VAW mechanisms</div>
+            <div class="yn-grid" id="yn-security"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Rights Awareness (Women)</div>
+            <div class="chart-subtitle">Awareness of special leaves under RA 9262 and gynecological disorders</div>
+            <div class="yn-grid" id="yn-rights"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: GOVERNANCE ══ -->
+      <div class="module-page" id="mod-governance">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Governance &amp; SOGIESC</div>
+          <div class="page-title">Gender-Responsive Governance &amp; SOGIESC</div>
+          <div class="page-subtitle">HR systems, office policies, inclusion perceptions, and SOGIESC indicators</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-6">
+            <div class="chart-title">HR Systems — SOGIESC Compliance</div>
+            <div class="chart-subtitle">% who believe each HR system is non-discriminatory</div>
+            <div class="hbar-list" id="chart-hr-systems"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Office Policy Inclusivity</div>
+            <div class="chart-subtitle">Uniforms, working arrangements, and leave management</div>
+            <div class="yn-grid" id="yn-policies"></div>
+          </div>
+          <div class="chart-card col-12">
+            <div class="chart-title">SOGIESC Climate Indicators</div>
+            <div class="chart-subtitle">% of respondents who responded "Yes" to each SOGIESC workplace statement</div>
+            <div class="hbar-list" id="chart-sogiesc"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Leadership &amp; Respect</div>
+            <div class="chart-subtitle">Consideration from superiors at all levels</div>
+            <div class="yn-grid" id="yn-leadership"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">GAD Facilities Awareness</div>
+            <div class="chart-subtitle">Awareness of gender-neutral CR, lactation room, GAD Corner, website</div>
+            <div class="hbar-list" id="chart-facilities"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: ENVIRONMENT ══ -->
+      <div class="module-page" id="mod-environment">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Environment &amp; Climate Change</div>
+          <div class="page-title">Environment &amp; Disaster Preparedness</div>
+          <div class="page-subtitle">GAD PAPs on environment and respondents' disaster readiness</div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card col-6">
+            <div class="chart-title">GAD Environmental Programs</div>
+            <div class="chart-subtitle">Awareness of MWSS RO PAPs on environment and disaster reduction</div>
+            <div class="yn-grid" id="yn-env-paps"></div>
+          </div>
+          <div class="chart-card col-6">
+            <div class="chart-title">Disaster Preparedness</div>
+            <div class="chart-subtitle">Personal, family, and workplace disaster readiness</div>
+            <div class="yn-grid" id="yn-disaster"></div>
+          </div>
+          <div class="chart-card col-12">
+            <div class="chart-title">Emergency Equipment Readiness</div>
+            <div class="chart-subtitle">% with basic emergency equipment prepared at home, office, and per-person</div>
+            <div class="chart-wrap"><canvas id="chart-emergency" style="max-height:220px;"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: RESPONDENTS ══ -->
+      <div class="module-page" id="mod-respondents">
+        <div class="page-header">
+          <div class="page-eyebrow">Module · Data</div>
+          <div class="page-title">All Respondents</div>
+          <div class="page-subtitle">Complete list of survey respondents loaded from NocoDB</div>
+        </div>
+        <div class="chart-card col-12" style="grid-column:span 12;">
+          <div class="table-wrap">
+            <table class="data-table" id="respondentsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Sex</th>
+                  <th>Age</th>
+                  <th>Civil Status</th>
+                  <th>Position</th>
+                  <th>Solo Parent</th>
+                  <th>PWD</th>
+                  <th>LGBTQIA+</th>
+                  <th>Income Bracket</th>
+                </tr>
+              </thead>
+              <tbody id="respondentsBody">
+                <tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📡</div><h3>Awaiting data</h3><p>Configure NocoDB connection to load respondents.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   ▸ NOCODB CONFIGURATION
+   Fill these in or use the ⚙️ button in the sidebar
+═══════════════════════════════════════════ */
+let NOCODB_BASE_URL  = 'https://your-nocodb-instance.com';
+let NOCODB_API_TOKEN = 'YOUR_API_TOKEN_HERE';
+let NOCODB_TABLE_ID  = 'YOUR_TABLE_ID_HERE';
+/* ═══════════════════════════════════════════
+   ▸ LOGIN CREDENTIALS
+   Change these before deploying to production
+═══════════════════════════════════════════ */
+const USERS = {
+  'gadmin':    'mwss2025',
+  'gfps_ro':   'gadteam2025',
+};
+/* ══════════════════════════════════════════ */
+
+// ── State ──
+let allData    = [];
+let chartRefs  = {};
+let sidebarOpen = true;
+
+// ── Chart color palettes ──
+const PALETTE_ROSE  = ['#C2185B','#E91E8C','#F48FB1','#FCE4EC','#880E4F'];
+const PALETTE_PLUM  = ['#3D0C52','#6A2C8A','#9C4DCC','#CE93D8','#F3EEF8'];
+const PALETTE_MIXED = ['#3D0C52','#C2185B','#F9A825','#00695C','#0277BD','#6A2C8A','#E91E8C','#2E7D32'];
+const PALETTE_LAWS  = { aware: '#3D0C52', impl: '#C2185B' };
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function handleLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err  = document.getElementById('loginError');
+
+  if (USERS[user] && USERS[user] === pass) {
+    err.classList.remove('show');
+    document.getElementById('userLabel').textContent = user === 'gadmin' ? 'GAD Admin' : user;
+    document.getElementById('userAvatar').textContent = user[0].toUpperCase();
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('dashboardScreen').classList.add('active');
+    loadData();
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+document.getElementById('loginUser').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginPass').focus();
+});
+
+function handleLogout() {
+  document.getElementById('dashboardScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  allData = [];
+}
+
+// ═══════════════════════════════════════════
+// SIDEBAR / LAYOUT
+// ═══════════════════════════════════════════
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const mc = document.getElementById('mainContent');
+  sidebarOpen = !sidebarOpen;
+  if (sidebarOpen) {
+    sb.classList.remove('collapsed');
+    mc.classList.remove('expanded');
+  } else {
+    sb.classList.add('collapsed');
+    mc.classList.add('expanded');
+  }
+}
+
+function showModule(name) {
+  document.querySelectorAll('.module-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`mod-${name}`).classList.add('active');
+  document.querySelector(`[data-module="${name}"]`).classList.add('active');
+  if (allData.length) renderModule(name);
+}
+
+// ═══════════════════════════════════════════
+// CONFIG MODAL
+// ═══════════════════════════════════════════
+function openConfig() {
+  document.getElementById('cfg_url').value   = NOCODB_BASE_URL;
+  document.getElementById('cfg_token').value = NOCODB_API_TOKEN;
+  document.getElementById('cfg_table').value = NOCODB_TABLE_ID;
+  document.getElementById('configModal').classList.add('open');
+}
+function closeConfig() {
+  document.getElementById('configModal').classList.remove('open');
+}
+function saveConfig() {
+  NOCODB_BASE_URL  = document.getElementById('cfg_url').value.trim().replace(/\/$/, '');
+  NOCODB_API_TOKEN = document.getElementById('cfg_token').value.trim();
+  NOCODB_TABLE_ID  = document.getElementById('cfg_table').value.trim();
+  closeConfig();
+  loadData();
+}
+
+// ═══════════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════════
+async function loadData() {
+  if (NOCODB_API_TOKEN === 'YOUR_API_TOKEN_HERE') {
+    showToast('⚙️ Configure NocoDB credentials to load live data.', 'error');
+    renderWithSampleData();
+    return;
+  }
+  showLoading('Fetching survey responses…');
+  try {
+    let page = 1, limit = 100, fetched = [];
+    while (true) {
+      const res = await fetch(
+        `${NOCODB_BASE_URL}/api/v1/db/data/noco/${NOCODB_TABLE_ID}/GAD_Survey_Responses_2025?limit=${limit}&offset=${(page-1)*limit}`,
+        { headers: { 'xc-token': NOCODB_API_TOKEN } }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const rows = json.list || json.data || [];
+      fetched = [...fetched, ...rows];
+      if (rows.length < limit) break;
+      page++;
+    }
+    allData = fetched;
+    hideLoading();
+    showToast(`✅ Loaded ${allData.length} respondents`, 'success');
+    renderAll();
+  } catch (err) {
+    hideLoading();
+    showToast(`❌ Could not connect to NocoDB: ${err.message}`, 'error');
+    renderWithSampleData();
+  }
+}
+
+function refreshData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  loadData().finally(() => setTimeout(() => btn.classList.remove('spinning'), 600));
+}
+
+// ═══════════════════════════════════════════
+// SAMPLE DATA (shown when NocoDB not configured)
+// ═══════════════════════════════════════════
+function renderWithSampleData() {
+  // Build 73 synthetic rows matching real column structure
+  const sexOpts     = ['Female','Female','Female','Male','Male','Other'];
+  const civilOpts   = ['Married','Single','Married','Married','Widower','Single','Legally Separated'];
+  const incomeOpts  = ['A. Below 100,000.00','B. 100,000.00 to below 250,000.00','C. 250,000.00 to below 500,000.00','D. 500,000.00 to below 1,000,000.00'];
+  const healthOpts  = ['Hypertension/ High Blood Pressure','Migraine','Eye Problem','Asthma','Diabetes','Weight Problem','Fatty Liver','Not Applicable (N/A)'];
+  const posOpts     = ['Administrative Officer III','Utility Worker','Engineer III','Chemist III','Records Officer','IT Officer','Fiscal Controller','Legal Officer'];
+  const yn          = () => Math.random() > 0.35 ? 'Yes' : 'No';
+  const pick        = arr => arr[Math.floor(Math.random() * arr.length)];
+  allData = Array.from({length:73}, (_,i) => ({
+    Q2_Name: `Sample Respondent ${i+1}`,
+    Q3_Sex: pick(sexOpts),
+    Q4_Age: 22 + Math.floor(Math.random()*38),
+    Q5_Civil_Status: pick(civilOpts),
+    Q8_Position: pick(posOpts),
+    Q12_Solo_Parent: Math.random()>0.78?'Yes':'No',
+    Q14_LGBTQIA_Plus: Math.random()>0.88?'Yes':'No',
+    Q16_PWD: Math.random()>0.88?'Yes':'No',
+    Q9_Indigenous_Group: Math.random()>0.9?'Yes':'No',
+    Q11_Religion: pick(['Roman Catholic','Iglesia ni Cristo','Born Again Christian','Islam','Others']),
+    Q18_Annual_Family_Income: pick(incomeOpts),
+    Q19_Dependents: pick(['Father','Mother','Children','Brothers / Sisters','None']),
+    Q27_Health_Issues: pick(healthOpts),
+    Q28_GFPS_Aware: yn(), Q29_GFPS_Know_Members: yn(),
+    Q31_Breadwinner: yn(), Q33_Financial_Access: yn(), Q34_Financial_Decision: yn(),
+    Q37_Partner_Childcare: yn(), Q41_Partner_Household_Tasks: yn(),
+    Q43_Family_Household_Tasks: yn(), Q44_Household_Decision: yn(), Q46_Household_Help: yn(),
+    Q48_Exercise_Vote: yn(), Q52_House_Owned: yn(),
+    Q54_Medical_Checkup: yn(), Q56_Dental_Checkup: yn(), Q60_HMO: yn(),
+    Q61_Medical_Payment: pick(['HMO','Personal','Other']),
+    Q63_Recreation_Activity: yn(), Q64_Family_Recreation: yn(),
+    Q69_Enough_Rest: yn(), Q70_Stress_Management: yn(), Q72_Empowerment_Activities: yn(),
+    Q74_Home_Growth: yn(), Q76_Work_Growth: yn(),
+    Q78_Law_Aware_RA6725: yn(), Q78_Law_Aware_RA7192: yn(), Q78_Law_Aware_RA7877: yn(),
+    Q78_Law_Aware_RA8353: yn(), Q78_Law_Aware_RA9262: yn(), Q78_Law_Aware_RA9710: yn(),
+    Q78_Law_Aware_RA10028: yn(), Q78_Law_Aware_RA10354: yn(), Q78_Law_Aware_RA11210: yn(),
+    Q78_Law_Aware_RA11313: yn(), Q78_Law_Aware_RA11861: yn(),
+    Q80_Impl_RA6725: yn(), Q82_Impl_RA7192: yn(), Q84_Impl_RA7877: yn(),
+    Q86_Impl_RA8353: yn(), Q88_Impl_RA9262: yn(), Q90_Impl_RA9710: yn(),
+    Q92_Impl_RA10028: yn(), Q94_Impl_RA10354: yn(), Q96_Impl_RA11210: yn(),
+    Q98_Impl_RA11313: yn(), Q100_Impl_RA11861: yn(),
+    Q107_Exp_Physical_Harm: Math.random()>0.9?'Yes':'No',
+    Q107_Exp_Harassment: Math.random()>0.82?'Yes':'No',
+    Q107_Exp_Bullying: Math.random()>0.87?'Yes':'No',
+    Q107_Exp_Sexual_Jokes: Math.random()>0.78?'Yes':'No',
+    Q107_Exp_Verbal_Abuse: Math.random()>0.8?'Yes':'No',
+    Q107_Exp_Emotional_Distress: Math.random()>0.7?'Yes':'No',
+    Q107_Exp_Sexual_Advances: Math.random()>0.88?'Yes':'No',
+    Q108_Willing_Discuss_Counsellor: yn(), Q109_Need_Counselling_Room: yn(),
+    Q110_VAW_Mechanism: yn(), Q111_Legal_Assistance: yn(),
+    Q114_Env_PAPs: yn(), Q115_Disaster_PAPs: yn(), Q116_Disaster_Personal: yn(),
+    Q117_Disaster_Family: yn(), Q118_Disaster_Coworker: yn(), Q119_NDRRM_Training: yn(),
+    Q120_Emergency_Equipment_Home: yn(), Q121_Emergency_Equipment_Office: yn(), Q122_Emergency_Equipment_Personal: yn(),
+    Q123_Resource_Access: yn(), Q125_RankFile_Decision: yn(), Q126_Personal_Decision: yn(),
+    Q127_HR_Recruitment: yn(), Q128_HR_Learning: yn(), Q129_HR_Performance: yn(), Q130_HR_Rewards: yn(),
+    Q132_Policy_Uniforms: yn(), Q133_Policy_Work_Arrange: yn(), Q134_Policy_Leave_Mgmt: yn(),
+    Q137_Superior_Considerate: yn(), Q138_DM_Considerate: yn(), Q139_DA_Considerate: yn(), Q140_Respect_Dignity: yn(),
+    Q141_CODI_Aware: yn(), Q144_Gender_Neutral_CR_Aware: yn(), Q145_CR_Comfortable: yn(),
+    Q147_Lactation_Room_Aware: yn(), Q148_GAD_Corner_Aware: yn(), Q149_GAD_Website_Aware: yn(),
+    Q150_IEC_Materials_Aware: yn(),
+    Q151_Leadership_SOGIESC: yn(), Q152_SOGIESC_Respected: yn(), Q153_Feel_Included: yn(),
+    Q156_No_Gender_Jokes: yn(), Q157_Open_Expression: yn(), Q158_Know_Report_Concern: yn(),
+    Q159_Policy_Anti_Discrim: yn(), Q160_Org_Action_Discrim: yn(), Q161_Authentic_Self: yn(),
+    Q162_Voice_Opinion: yn(), Q163_Opinion_Valued: yn(),
+    Q168_Budget_Aware: yn(), Q170_Gender_Water_Concerns_Aware: yn(),
+  }));
+  renderAll();
+  document.getElementById('overviewSubtitle').textContent = '⚠️ Showing sample data — configure NocoDB for live results.';
+}
+
+// ═══════════════════════════════════════════
+// RENDER ALL MODULES
+// ═══════════════════════════════════════════
+function renderAll() {
+  const n = allData.length;
+  document.getElementById('navBadge').textContent = n;
+  document.getElementById('overviewSubtitle').textContent =
+    `${n} respondents · Last refreshed ${new Date().toLocaleTimeString()}`;
+  renderModule('overview');
+}
+
+function renderModule(name) {
+  const fn = {
+    overview:     renderOverview,
+    demographics: renderDemographics,
+    economic:     renderEconomic,
+    health:       renderHealth,
+    laws:         renderLaws,
+    security:     renderSecurity,
+    governance:   renderGovernance,
+    environment:  renderEnvironment,
+    respondents:  renderRespondents,
+  }[name];
+  if (fn) fn();
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const count     = (field, val) => allData.filter(r => r[field] === val).length;
+const pct       = (num, den)   => den ? Math.round((num/den)*100) : 0;
+const pctStr    = (num, den)   => `${pct(num,den)}% of respondents`;
+
+function freq(field, topN=8) {
+  const map = {};
+  allData.forEach(r => {
+    const v = r[field];
+    if (!v) return;
+    v.split(',').forEach(x => { x = x.trim(); if (x) map[x] = (map[x]||0)+1; });
+  });
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0, topN)
+    .map(([label, value]) => ({ label, value }));
+}
+
+function yesRate(field) {
+  const yes = count(field, 'Yes');
+  const tot = allData.filter(r => r[field] === 'Yes' || r[field] === 'No').length;
+  return { yes, tot, pct: pct(yes, tot) };
+}
+
+function makeChart(id, config) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (chartRefs[id]) { chartRefs[id].destroy(); }
+  chartRefs[id] = new Chart(el, config);
+}
+
+function makeDoughnut(id, labels, data, colors) {
+  makeChart(id, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors||PALETTE_MIXED, borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, plugins: { legend: { position:'bottom', labels: { font:{size:11}, padding:10 } } }, cutout:'62%' }
+  });
+}
+
+function makeBar(id, labels, datasets, opts={}) {
+  makeChart(id, {
+    type: opts.horizontal ? 'bar' : 'bar',
+    data: { labels, datasets },
+    options: {
+      indexAxis: opts.horizontal ? 'y' : 'x',
+      responsive: true,
+      plugins: { legend: { display: datasets.length > 1, labels: { font:{size:11} } } },
+      scales: {
+        x: { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10}} },
+        y: { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10}} }
+      },
+      ...opts.extra
+    }
+  });
+}
+
+function renderHBars(containerId, items, colorClass='') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const max = Math.max(...items.map(i=>i.value), 1);
+  el.innerHTML = items.map(item => `
+    <div class="hbar-item">
+      <div class="hbar-meta">
+        <span class="hbar-label">${item.label}</span>
+        <span class="hbar-val">${item.value} <small style="font-weight:400;color:var(--ink-lt)">(${pct(item.value,allData.length)}%)</small></span>
+      </div>
+      <div class="hbar-track"><div class="hbar-fill ${colorClass}" style="width:${pct(item.value,max)}%"></div></div>
+    </div>`).join('');
+  // animate
+  setTimeout(() => el.querySelectorAll('.hbar-fill').forEach(f => f.style.width = f.style.width), 50);
+}
+
+function renderYNGrid(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => {
+    const r = yesRate(item.field);
+    const noPct = 100 - r.pct;
+    return `<div class="yn-item">
+      <div class="yn-label">${item.label} &nbsp;<span style="font-family:'JetBrains Mono';font-size:0.72rem;color:var(--ink-lt)">${r.yes}/${r.tot}</span></div>
+      <div class="yn-bar-wrap">
+        <div class="yn-yes" style="width:${r.pct}%">${r.pct>12?r.pct+'%':''}</div>
+        <div class="yn-no"  style="width:${noPct}%">${noPct>12?noPct+'%':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// MODULE RENDERS
+// ═══════════════════════════════════════════
+function renderOverview() {
+  const n      = allData.length;
+  const female = count('Q3_Sex','Female');
+  const male   = count('Q3_Sex','Male');
+  const solo   = count('Q12_Solo_Parent','Yes');
+  const pwd    = count('Q16_PWD','Yes');
+
+  document.getElementById('stat-total').textContent    = n;
+  document.getElementById('stat-female').textContent   = female;
+  document.getElementById('stat-male').textContent     = male;
+  document.getElementById('stat-solo').textContent     = solo;
+  document.getElementById('stat-pwd').textContent      = pwd;
+  document.getElementById('stat-female-pct').textContent = pctStr(female,n);
+  document.getElementById('stat-male-pct').textContent   = pctStr(male,n);
+  document.getElementById('stat-solo-pct').textContent   = pctStr(solo,n);
+  document.getElementById('stat-pwd-pct').textContent    = pctStr(pwd,n);
+
+  // Sex doughnut
+  const other = n - female - male;
+  makeDoughnut('chart-sex',
+    ['Female','Male','Other'],
+    [female, male, Math.max(other,0)],
+    [PALETTE_ROSE[0], PALETTE_PLUM[0], PALETTE_MIXED[2]]
+  );
+
+  // Civil status
+  const civil = freq('Q5_Civil_Status', 7);
+  makeDoughnut('chart-civil', civil.map(x=>x.label), civil.map(x=>x.value), PALETTE_MIXED);
+
+  // Income
+  const incLabels = ['A. Below ₱100k','B. ₱100k–250k','C. ₱250k–500k','D. ₱500k–1M','₱1M+'];
+  const incKeys   = ['A. Below 100,000.00','B. 100,000.00 to below 250,000.00','C. 250,000.00 to below 500,000.00','D. 500,000.00 to below 1,000,000.00','1,000,000.00 and above'];
+  makeBar('chart-income', incLabels, [{
+    data: incKeys.map(k => allData.filter(r => r['Q18_Annual_Family_Income'] === k).length),
+    backgroundColor: PALETTE_PLUM.map(c => c+'CC'),
+    borderRadius: 5,
+    label: 'Respondents'
+  }]);
+
+  // Age histogram
+  const bands = [['18–25',18,26],['26–35',26,36],['36–45',36,46],['46–55',46,56],['56+',56,999]];
+  makeBar('chart-age', bands.map(b=>b[0]), [{
+    data: bands.map(([,lo,hi]) => allData.filter(r => r.Q4_Age >= lo && r.Q4_Age < hi).length),
+    backgroundColor: PALETTE_ROSE.map(c=>c+'CC'),
+    borderRadius: 5,
+    label: 'Respondents'
+  }]);
+
+  // Top positions
+  renderHBars('chart-positions', freq('Q8_Position', 8), 'rose');
+}
+
+function renderDemographics() {
+  const n = allData.length;
+  const rel = freq('Q11_Religion', 6);
+  makeDoughnut('chart-religion', rel.map(x=>x.label), rel.map(x=>x.value), PALETTE_MIXED);
+
+  const lgbtq = count('Q14_LGBTQIA_Plus','Yes');
+  makeDoughnut('chart-lgbtqia', ['LGBTQIA+','Non-LGBTQIA+'], [lgbtq, n-lgbtq], [PALETTE_ROSE[0], PALETTE_PLUM[3]]);
+
+  const sp    = count('Q12_Solo_Parent','Yes');
+  makeDoughnut('chart-soloparent', ['Solo Parent','Not Solo Parent'], [sp, n-sp], [PALETTE_MIXED[2], PALETTE_PLUM[3]]);
+
+  const pwd   = count('Q16_PWD','Yes');
+  makeDoughnut('chart-pwd', ['PWD','Non-PWD'], [pwd, n-pwd], [PALETTE_MIXED[3], PALETTE_PLUM[3]]);
+
+  const ind   = count('Q9_Indigenous_Group','Yes');
+  makeDoughnut('chart-indigenous', ['Indigenous','Non-Indigenous'], [ind, n-ind], [PALETTE_MIXED[4], PALETTE_PLUM[3]]);
+}
+
+function renderEconomic() {
+  const n = allData.length;
+  const bw = count('Q31_Breadwinner','Yes');
+  const fa = count('Q33_Financial_Access','Yes');
+  const pc = count('Q37_Partner_Childcare','Yes');
+  const hh = count('Q46_Household_Help','Yes');
+  document.getElementById('eco-breadwinner').textContent = bw;
+  document.getElementById('eco-finance').textContent     = fa;
+  document.getElementById('eco-partner').textContent     = pc;
+  document.getElementById('eco-help').textContent        = hh;
+  document.getElementById('eco-bw-pct').textContent      = pctStr(bw,n);
+  document.getElementById('eco-fin-pct').textContent     = pctStr(fa,n);
+  document.getElementById('eco-part-pct').textContent    = pctStr(pc,n);
+  document.getElementById('eco-help-pct').textContent    = pctStr(hh,n);
+
+  renderYNGrid('yn-economic', [
+    { field:'Q31_Breadwinner',           label:'Is the breadwinner of the family' },
+    { field:'Q33_Financial_Access',      label:'Has access to family financial resources' },
+    { field:'Q34_Financial_Decision',    label:'Participates in family financial decisions' },
+    { field:'Q37_Partner_Childcare',     label:'Partner shares in child caring/rearing' },
+    { field:'Q41_Partner_Household_Tasks',label:'Partner participates in household tasks' },
+    { field:'Q43_Family_Household_Tasks',label:'Other family members help with household tasks' },
+    { field:'Q44_Household_Decision',    label:'Makes household management decisions' },
+    { field:'Q46_Household_Help',        label:'Has household help' },
+  ]);
+
+  const incomeSrc = [
+    'MWSS RO Employment','Direct Selling','Rentals/Leases',
+    'Investments/Shares of Stocks','Buy and Sell','Food processing/home-based industries',
+    'Farm produce for sale','Financing'
+  ].map(label => ({ label, value: allData.filter(r => (r.Q32_Income_Sources||'').includes(label)).length }))
+   .filter(x => x.value > 0)
+   .sort((a,b)=>b.value-a.value);
+  renderHBars('chart-income-sources', incomeSrc, 'teal');
+
+  const depTypes = freq('Q19_Dependents', 6);
+  makeDoughnut('chart-dependents', depTypes.map(x=>x.label), depTypes.map(x=>x.value), PALETTE_MIXED);
+}
+
+function renderHealth() {
+  const healthItems = [
+    'Not Applicable (N/A)','Hypertension/ High Blood Pressure','Migraine','Eye Problem',
+    'Asthma','High Cholesterol Level','Diabetes','Fatty Liver','High Uric Acid Level',
+    'Weight Problem','Mental Illness','Heart Ailment','Urinary Tract Infection (UTI)'
+  ].map(label => ({
+    label,
+    value: allData.filter(r => (r.Q27_Health_Issues||'').includes(label)).length
+  })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+  renderHBars('chart-health-issues', healthItems.slice(0,10));
+
+  renderYNGrid('yn-health', [
+    { field:'Q54_Medical_Checkup',  label:'Has regular physical/medical check-up' },
+    { field:'Q56_Dental_Checkup',   label:'Has regular dental check-up' },
+    { field:'Q58_Child_Checkup',    label:"Children have regular check-up" },
+    { field:'Q60_HMO',              label:'Has HMO / healthcare provider' },
+    { field:'Q62_Church_Attendance',label:'Attends church/religious gatherings with family' },
+  ]);
+
+  renderYNGrid('yn-wellbeing', [
+    { field:'Q69_Enough_Rest',              label:'Has enough time to rest' },
+    { field:'Q70_Stress_Management',        label:'Manages stress well' },
+    { field:'Q63_Recreation_Activity',      label:'Has regular recreation activity' },
+    { field:'Q64_Family_Recreation',        label:'Has regular recreation with family' },
+    { field:'Q72_Empowerment_Activities',   label:'Does self-empowerment activities' },
+    { field:'Q74_Home_Growth',              label:'Home environment supports growth' },
+    { field:'Q76_Work_Growth',              label:'Work environment supports growth' },
+  ]);
+
+  const payItems = freq('Q61_Medical_Payment', 4);
+  makeDoughnut('chart-medical-pay', payItems.map(x=>x.label), payItems.map(x=>x.value),
+    [PALETTE_PLUM[0], PALETTE_ROSE[0], PALETTE_MIXED[2], PALETTE_MIXED[4]]);
+}
+
+function renderLaws() {
+  const laws = [
+    { short:'RA 6725', aware:'Q78_Law_Aware_RA6725', impl:'Q80_Impl_RA6725' },
+    { short:'RA 7192', aware:'Q78_Law_Aware_RA7192', impl:'Q82_Impl_RA7192' },
+    { short:'RA 7877', aware:'Q78_Law_Aware_RA7877', impl:'Q84_Impl_RA7877' },
+    { short:'RA 8353', aware:'Q78_Law_Aware_RA8353', impl:'Q86_Impl_RA8353' },
+    { short:'RA 9262', aware:'Q78_Law_Aware_RA9262', impl:'Q88_Impl_RA9262' },
+    { short:'RA 9710', aware:'Q78_Law_Aware_RA9710', impl:'Q90_Impl_RA9710' },
+    { short:'RA 10028',aware:'Q78_Law_Aware_RA10028',impl:'Q92_Impl_RA10028' },
+    { short:'RA 10354',aware:'Q78_Law_Aware_RA10354',impl:'Q94_Impl_RA10354' },
+    { short:'RA 11210',aware:'Q78_Law_Aware_RA11210',impl:'Q96_Impl_RA11210' },
+    { short:'RA 11313',aware:'Q78_Law_Aware_RA11313',impl:'Q98_Impl_RA11313' },
+    { short:'RA 11861',aware:'Q78_Law_Aware_RA11861',impl:'Q100_Impl_RA11861'},
+  ];
+  const n = allData.length;
+  makeBar('chart-laws',
+    laws.map(l=>l.short),
+    [
+      { label:'Aware of the law', data: laws.map(l => pct(count(l.aware,'Yes'),n)), backgroundColor: PALETTE_PLUM[0]+'CC', borderRadius:4 },
+      { label:'Believes it\'s implemented', data: laws.map(l => pct(count(l.impl,'Yes'),n)), backgroundColor: PALETTE_ROSE[0]+'CC', borderRadius:4 }
+    ],
+    { extra: { scales: { y: { max:100, ticks:{ callback: v=>v+'%', font:{size:10} }, grid:{color:'rgba(0,0,0,0.04)'} }, x:{ grid:{display:false}, ticks:{font:{size:10}} } } } }
+  );
+
+  renderYNGrid('yn-gfps', [
+    { field:'Q28_GFPS_Aware',        label:'Aware of the GAD Focal Point System (GFPS)' },
+    { field:'Q29_GFPS_Know_Members', label:'Knows GFPS members and their functions' },
+  ]);
+
+  const trainItems = [
+    'Basic GAD Orientation','Gender and Sensitivity Training (GST)','Gender-Fair Language',
+    'Sexual Harassment in the Workplace','Orientation on Safe Spaces Act',
+    'Masculinities','Gender Analysis Tools','Raising Gen Z or Digital Generation'
+  ].map(label => ({
+    label,
+    value: allData.filter(r=>(r.Q104_GAD_Trainings_Attended||'').includes(label)).length
+  })).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+  renderHBars('chart-trainings', trainItems.slice(0,7), 'gold');
+}
+
+function renderSecurity() {
+  const expItems = [
+    { field:'Q107_Exp_Emotional_Distress',  label:'Emotional distress' },
+    { field:'Q107_Exp_Verbal_Abuse',        label:'Verbal and emotional abuse' },
+    { field:'Q107_Exp_Harassment',          label:'Being harassed' },
+    { field:'Q107_Exp_Bullying',            label:'Bullying' },
+    { field:'Q107_Exp_Sexual_Jokes',        label:'Malicious or sexual (green) jokes' },
+    { field:'Q107_Exp_Mental_Anguish',      label:'Mental and emotional anguish' },
+    { field:'Q107_Exp_Sexual_Advances',     label:'Sexual advances by a co-worker' },
+    { field:'Q107_Exp_Public_Humiliation',  label:'Public humiliation' },
+    { field:'Q107_Exp_Physical_Harm',       label:'Physical harm' },
+    { field:'Q107_Exp_Stalking',            label:'Being stalked' },
+    { field:'Q107_Exp_Discrimination_Work', label:'Discrimination at work (SOGIESC-related)' },
+    { field:'Q107_Exp_Sexual_Favor_Hire',   label:'Sexual favors as employment condition' },
+  ].map(x => ({ label: x.label, value: count(x.field,'Yes'), field: x.field }))
+   .sort((a,b)=>b.value-a.value);
+  renderHBars('chart-experiences', expItems, 'rose');
+
+  renderYNGrid('yn-security', [
+    { field:'Q108_Willing_Discuss_Counsellor', label:'Willing to discuss with a counsellor/expert' },
+    { field:'Q109_Need_Counselling_Room',      label:'Sees need for a crisis/counselling room' },
+    { field:'Q110_VAW_Mechanism',              label:'Aware of VAW mechanism at MWSS RO' },
+    { field:'Q111_Legal_Assistance',           label:'Legal assistance provided at MWSS RO' },
+    { field:'Q106_Security_Justice_Aware',     label:'Aware of Security, Justice & Peace provisions' },
+  ]);
+
+  renderYNGrid('yn-rights', [
+    { field:'Q112_VAW_10Day_Leave_Aware',          label:'Aware of 10-day paid leave under RA 9262 (for women)' },
+    { field:'Q113_Gynecological_60Day_Leave_Aware',label:'Aware of 60-day leave for gynecological disorders (for women)' },
+  ]);
+}
+
+function renderGovernance() {
+  const hrItems = [
+    { label: 'A. Recruitment, Selection & Placement', value: yesRate('Q127_HR_Recruitment').pct },
+    { label: 'B. Learning and Development',           value: yesRate('Q128_HR_Learning').pct },
+    { label: 'C. Performance Management',             value: yesRate('Q129_HR_Performance').pct },
+    { label: 'D. Rewards and Recognition',            value: yesRate('Q130_HR_Rewards').pct },
+  ];
+  renderHBars('chart-hr-systems', hrItems, 'teal');
+
+  renderYNGrid('yn-policies', [
+    { field:'Q132_Policy_Uniforms',     label:'Office Uniforms policy is inclusive' },
+    { field:'Q133_Policy_Work_Arrange', label:'Working Arrangements policy is inclusive' },
+    { field:'Q134_Policy_Leave_Mgmt',   label:'Leave Management policy is inclusive' },
+  ]);
+
+  const sogiescItems = [
+    { field:'Q151_Leadership_SOGIESC',  label:'Strong leadership support for SOGIESC values' },
+    { field:'Q152_SOGIESC_Respected',   label:'People regardless of SOGIESC are respected' },
+    { field:'Q153_Feel_Included',       label:'Feels included and respected in the organization' },
+    { field:'Q156_No_Gender_Jokes',     label:'Gender-based jokes are not tolerated' },
+    { field:'Q157_Open_Expression',     label:'Free and open expression of gender ideas' },
+    { field:'Q158_Know_Report_Concern', label:'Knows where/how to report harassment' },
+    { field:'Q159_Policy_Anti_Discrim', label:'Policies discourage SOGIESC discrimination' },
+    { field:'Q160_Org_Action_Discrim',  label:'Organization takes action on discrimination' },
+    { field:'Q161_Authentic_Self',      label:'Can be successful as authentic self' },
+    { field:'Q162_Voice_Opinion',       label:'Can voice contrary opinion without fear' },
+    { field:'Q163_Opinion_Valued',      label:'Opinion is valued when speaking up' },
+  ].map(x => ({ label: x.label, value: yesRate(x.field).pct }));
+  renderHBars('chart-sogiesc', sogiescItems);
+
+  renderYNGrid('yn-leadership', [
+    { field:'Q137_Superior_Considerate', label:'Immediate superior is considerate' },
+    { field:'Q138_DM_Considerate',       label:'Department Manager is considerate' },
+    { field:'Q139_DA_Considerate',       label:'Deputy Administrator is considerate' },
+    { field:'Q140_Respect_Dignity',      label:'Treated with respect and dignity daily' },
+  ]);
+
+  const facItems = [
+    { label: 'Gender-Neutral Comfort Room', value: yesRate('Q144_Gender_Neutral_CR_Aware').pct },
+    { label: 'Lactation Room',              value: yesRate('Q147_Lactation_Room_Aware').pct },
+    { label: 'GAD Corner',                  value: yesRate('Q148_GAD_Corner_Aware').pct },
+    { label: 'GAD Website',                 value: yesRate('Q149_GAD_Website_Aware').pct },
+    { label: 'IEC Materials',               value: yesRate('Q150_IEC_Materials_Aware').pct },
+    { label: 'CODI Existence & Function',   value: yesRate('Q141_CODI_Aware').pct },
+  ];
+  renderHBars('chart-facilities', facItems, 'gold');
+}
+
+function renderEnvironment() {
+  renderYNGrid('yn-env-paps', [
+    { field:'Q114_Env_PAPs',     label:'MWSS RO has GAD PAPs for environmental protection' },
+    { field:'Q115_Disaster_PAPs',label:'MWSS RO has GAD PAPs for disaster reduction' },
+    { field:'Q119_NDRRM_Training',label:'Has attended NDRRM training' },
+  ]);
+
+  renderYNGrid('yn-disaster', [
+    { field:'Q116_Disaster_Personal',  label:'Personally knows what to do during disasters' },
+    { field:'Q117_Disaster_Family',    label:'Knows disaster response together with family' },
+    { field:'Q118_Disaster_Coworker',  label:'Knows disaster response with co-workers' },
+  ]);
+
+  makeBar('chart-emergency',
+    ['At Home','At the Office','Per Personnel'],
+    [{
+      label: '% with emergency equipment',
+      data: [
+        yesRate('Q120_Emergency_Equipment_Home').pct,
+        yesRate('Q121_Emergency_Equipment_Office').pct,
+        yesRate('Q122_Emergency_Equipment_Personal').pct,
+      ],
+      backgroundColor: [PALETTE_PLUM[0]+'CC', PALETTE_ROSE[0]+'CC', PALETTE_MIXED[2]+'CC'],
+      borderRadius: 6,
+    }],
+    { extra: { scales: { y:{ max:100, ticks:{ callback: v=>v+'%' } }, x:{grid:{display:false}} }, plugins:{legend:{display:false}} } }
+  );
+}
+
+function renderRespondents() {
+  const tbody = document.getElementById('respondentsBody');
+  if (!allData.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📡</div><h3>No data</h3><p>Configure NocoDB connection to load respondents.</p></div></td></tr>`;
+    return;
+  }
+  const sexPill = sex => {
+    if (sex === 'Female') return '<span class="pill pill-female">Female</span>';
+    if (sex === 'Male')   return '<span class="pill pill-male">Male</span>';
+    return `<span class="pill pill-other">${sex||'—'}</span>`;
+  };
+  const ynPill = v => v === 'Yes'
+    ? '<span class="pill pill-yes">Yes</span>'
+    : v === 'No' ? '<span class="pill pill-no">No</span>' : '—';
+
+  tbody.innerHTML = allData.map((r, i) => `
+    <tr>
+      <td style="color:var(--ink-lt);font-family:'JetBrains Mono'">${i+1}</td>
+      <td style="font-weight:500;color:var(--ink)">${r.Q2_Name || '—'}</td>
+      <td>${sexPill(r.Q3_Sex)}</td>
+      <td style="font-family:'JetBrains Mono'">${r.Q4_Age || '—'}</td>
+      <td>${r.Q5_Civil_Status || '—'}</td>
+      <td>${r.Q8_Position || '—'}</td>
+      <td>${ynPill(r.Q12_Solo_Parent)}</td>
+      <td>${ynPill(r.Q16_PWD)}</td>
+      <td>${ynPill(r.Q14_LGBTQIA_Plus)}</td>
+      <td style="font-size:0.78rem">${(r.Q18_Annual_Family_Income||'—').replace('A. Below ','<₱').replace('B. ','').replace('C. ','').replace('D. ','')}</td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// UI UTILITIES
+// ═══════════════════════════════════════════
+function showLoading(msg='Loading…') {
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3800);
+}
+
+// ── Init: load config from localStorage if available ──
+(function init() {
+  const saved = localStorage.getItem('gad_nocodb_cfg');
+  if (saved) {
+    try {
+      const c = JSON.parse(saved);
+      NOCODB_BASE_URL  = c.url   || NOCODB_BASE_URL;
+      NOCODB_API_TOKEN = c.token || NOCODB_API_TOKEN;
+      NOCODB_TABLE_ID  = c.table || NOCODB_TABLE_ID;
+    } catch(e) {}
+  }
+  // Enter key on login
+  document.getElementById('loginPass').addEventListener('keydown', e => {
+    if (e.key==='Enter') handleLogin();
+  });
+})();
+
+// ── Save config to localStorage when saving modal ──
+const origSaveConfig = saveConfig;
+window.saveConfig = function() {
+  NOCODB_BASE_URL  = document.getElementById('cfg_url').value.trim().replace(/\/$/, '');
+  NOCODB_API_TOKEN = document.getElementById('cfg_token').value.trim();
+  NOCODB_TABLE_ID  = document.getElementById('cfg_table').value.trim();
+  localStorage.setItem('gad_nocodb_cfg', JSON.stringify({
+    url: NOCODB_BASE_URL, token: NOCODB_API_TOKEN, table: NOCODB_TABLE_ID
+  }));
+  closeConfig();
+  loadData();
+};
+</script>
+</body>
+</html>
